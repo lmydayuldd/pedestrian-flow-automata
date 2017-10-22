@@ -5,8 +5,6 @@ import 'd3-selection-multi'
 import 'd3-shape';
 import 'd3-path';
 
-import Cell from './Cell'
-
 import './Automata.css';
 
 
@@ -29,7 +27,7 @@ class Automata extends Component {
       .append("g")
       .attr("class", "row");
 
-    const cols = row.selectAll('.square')
+    row.selectAll('.square')
       .data(d => d)
       .enter()
       .append('rect')
