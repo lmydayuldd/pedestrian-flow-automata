@@ -57,11 +57,6 @@ export class Cell {
   }
 }
 
-export class Layer {
-  constructor() {
-  }
-}
-
 /**
  * This class keeps the state of each iteration.
  * The constructor parameters indicate what's the size 
