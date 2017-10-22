@@ -1,6 +1,6 @@
 import { Cell } from '../Evolver.js';
 
-it('build the neighbours array with given value', () => {
+it('should build the neighbours array with given value', () => {
   const aCell = new Cell(1, 2, 2);
   const neighbours = aCell.neighbours;
   expect(Object.keys(neighbours).length).toBe(8);
@@ -21,4 +21,8 @@ it('build the neighbours array with given value', () => {
   expect(neighbours['E'].y).toBe(2);
   expect(neighbours['W'].y).toBe(2);
   expect(aCell._value).toBe(2);
+});
+
+it('', () => {
+
 });

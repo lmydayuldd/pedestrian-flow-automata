@@ -32,9 +32,12 @@ export class Cell {
   _buildNeighbours(cardinalPoints) {
     return Object.keys(cardinalPoints)
       .map((key) => {
+        const x = this._x + cardinalPoints[key].dx;
+        const y = this._y + cardinalPoints[key].dy;
+        
         const neighbour = {
-          x: this._x + VECINITY[key].dx,
-          y: this._y + VECINITY[key].dy,
+          x: Math.max(0, Math.min(x, this._width - 1)),
+          y: Math.max(0, Math.min(y, this._height - 1));,
           key: key
         };
         return neighbour;
@@ -48,13 +51,14 @@ export class Cell {
   get neighbours() {
     return this._neighbours;
   }
+
+  get value() {
+    return this._value;
+  }
 }
 
 export class Layer {
   constructor() {
-    this.probMatrix = Array.from({
-      length: 3
-    }, () => new Array(3).fill(0));
   }
 }
 
@@ -64,10 +68,50 @@ export class Layer {
  * of the automata.
  **/
 export class Model {
-  constructor(width, height) {
-    this.grid = Array.from({
-      length: height
-    }, () => new Array(width).fill(0));
- 
+  constructor(width, height, layers, state) {
+    this._width = width;
+    this._height = height;
+    this._layers = layers;
+    if (!state) {
+      this._grid = this._createEmptyGrid(widht, height);
+    } else {
+      this._grid = state;
+    }
+  }
+
+  _createEmptyGrid(width, height) {
+    let grid = [];
+    for (let row = 0; row < height; row++) {
+      let cols = [];
+      for (let col = 0; col < width; col++) {
+        cols.push(new Cell(col, row, 0));
+      }
+      grid.push(cols);
+    }
+    return grid;
+  }
+
+  evolve () {
+    let state = this._createEmptyGrid(this._width, this._height);
+    for (let row = 0; row < this._height; row++) {
+      for (let col = 0; col < this._width; col++) {
+        const value = this._grid[row][col];
+        if (value === 0) {
+          continue;
+        }
+        const layer = this._layers[value].sort();
+        const proof = Math.random();
+        let moveDirection;
+        for (let direction in layer) {
+          if (layer[direction] > proof) {
+            break;
+          }
+          moveDirection = direction;
+        }
+        const move = value.neighbours[moveDirection];
+        state[move.x][move.y] = new Cell(move.x, move.y, value.value);
+      }
+    }
+    return new Model(this._width, this._height, this._layers, state);
   }
 }
