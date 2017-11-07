@@ -1,3 +1,3 @@
-import Automata from './Automata.js'
+import { Automata } from './Automata.js'
 
 export default Automata;

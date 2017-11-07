@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import Automata from './components/automata';
+import App from './App.js';
 import registerServiceWorker from './registerServiceWorker';
 
-ReactDOM.render(<Automata />, document.getElementById('root'));
+ReactDOM.render(<App />, document.getElementById('root'));
 registerServiceWorker();

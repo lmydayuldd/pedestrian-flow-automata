@@ -1,15 +1,3 @@
-export default class Evolver {  
-  evolve(data) {
-    // Validate automata rules and mutate state;
-    // This means create a new copy of the data, change state
-    // based on the rules. 
-    // It's important to think of immutability. This class 
-    // should not keep any type of state and mutate over it, 
-    // but instead it should create new states based on the previous rules.
-    // Instead consider the rules of mutation and implement the state change. 
-  }
-}
-
 const VECINITY = { 
   N: { dx: 0, dy: -1 }, 
   NE: { dx: 1, dy: -1 }, 
@@ -22,28 +10,36 @@ const VECINITY = {
 };
 
 export class Cell {
-  constructor(x, y, value) {
-    this._x = x;
-    this._y = y;
+  constructor(row, col, value) {
+    this._col = col;
+    this._row = row;
     this._value = value;
     this._neighbours = this._buildNeighbours(VECINITY);   
+  }
+
+  get row() {
+    return this._row;
+  }
+
+  get col() {
+    return this._col;
   }
 
   _buildNeighbours(cardinalPoints) {
     return Object.keys(cardinalPoints)
       .map((key) => {
-        const x = this._x + cardinalPoints[key].dx;
-        const y = this._y + cardinalPoints[key].dy;
+        const col = this._col + cardinalPoints[key].dx;
+        const row = this._row + cardinalPoints[key].dy;
         
         const neighbour = {
-          x: Math.max(0, Math.min(x, this._width - 1)),
-          y: Math.max(0, Math.min(y, this._height - 1));,
+          col: col,
+          row: row,
           key: key
         };
         return neighbour;
       })
       .reduce((result, value) => {
-        result[value.key] = { x: value.x, y: value.y };
+        result[value.key] = { row: value.row, col: value.col };
         return result;
       }, {});
   }
@@ -68,33 +64,42 @@ export class Model {
     this._height = height;
     this._layers = layers;
     if (!state) {
-      this._grid = this._createEmptyGrid(widht, height);
+      this._grid = Model.emptyGrid(width, height);
     } else {
       this._grid = state;
     }
   }
 
-  _createEmptyGrid(width, height) {
+  static emptyGrid(width, height) {
     let grid = [];
     for (let row = 0; row < height; row++) {
-      let cols = [];
+      grid[row] = [];
       for (let col = 0; col < width; col++) {
-        cols.push(new Cell(col, row, 0));
+        grid[row][col] = new Cell(row, col, 0);
       }
-      grid.push(cols);
     }
     return grid;
   }
 
+  static randomGrid(width, height, layers) {
+    let state = Model.emptyGrid(width, height);
+    for (let row = 0; row < height; row++) {
+      for (let col = 0; col < width; col++) {
+        state[row][col] = new Cell(row, col, Math.floor(Math.random() * layers));
+      }
+    }
+    return state;
+  }
+
   evolve () {
-    let state = this._createEmptyGrid(this._width, this._height);
-    for (let row = 0; row < this._height; row++) {
-      for (let col = 0; col < this._width; col++) {
-        const value = this._grid[row][col];
-        if (value === 0) {
+    let state = Model.emptyGrid(this._width, this._height);
+    for (let row = this._height - 1; row >= 0; row--) {
+      for (let col = this._width - 1; col >= 0; col--) {
+        const cell = this._grid[row][col];
+        if (cell.value === 0 || cell.value > this._layers.length) {
           continue;
         }
-        const layer = this._layers[value].sort();
+        const layer = this._layers[cell.value];
         const proof = Math.random();
         let moveDirection;
         for (let direction in layer) {
@@ -103,8 +108,14 @@ export class Model {
           }
           moveDirection = direction;
         }
-        const move = value.neighbours[moveDirection];
-        state[move.x][move.y] = new Cell(move.x, move.y, value.value);
+        const move = cell.neighbours[moveDirection];
+        const rowNew = Math.max(0, Math.min(move.row, this._height - 1));
+        const colNew = Math.max(0, Math.min(move.col, this._width - 1));
+        if (state[rowNew][colNew].value === 0) {
+          state[rowNew][colNew] = new Cell(rowNew, colNew, cell.value);
+        } else {
+          state[cell.row][cell.col] = new Cell(cell.row, cell.col, cell.value);
+        }
       }
     }
     return new Model(this._width, this._height, this._layers, state);
