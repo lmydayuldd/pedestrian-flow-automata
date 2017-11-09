@@ -92,10 +92,10 @@ export class Model {
   }
 
   evolve () {
-    let state = Model.emptyGrid(this._width, this._height);
-    for (let row = this._height - 1; row >= 0; row--) {
-      for (let col = this._width - 1; col >= 0; col--) {
-        const cell = this._grid[row][col];
+    let state = Object.assign(this._grid);
+    for (let row = 0; row < this._height; row++) {
+      for (let col = 0; col < this._width; col++) {
+        const cell = state[row][col];
         if (cell.value === 0 || cell.value > this._layers.length) {
           continue;
         }
@@ -111,10 +111,13 @@ export class Model {
         const move = cell.neighbours[moveDirection];
         const rowNew = Math.max(0, Math.min(move.row, this._height - 1));
         const colNew = Math.max(0, Math.min(move.col, this._width - 1));
-        if (state[rowNew][colNew].value === 0) {
-          state[rowNew][colNew] = new Cell(rowNew, colNew, cell.value);
+        const targetCell = state[rowNew][colNew];
+        if (targetCell.value === 0) {
+          state[targetCell.row][targetCell.col] = new Cell(targetCell.row, targetCell.col, cell.value);
+          state[cell.row][cell.col] = new Cell(cell.row, cell.col, 0);
         } else {
-          state[cell.row][cell.col] = new Cell(cell.row, cell.col, cell.value);
+          state[cell.row][cell.col] = cell;
+          state[targetCell.row][targetCell.col] = targetCell;
         }
       }
     }

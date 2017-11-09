@@ -11,57 +11,50 @@ import { Model } from './Evolver.js';
 import CONFIG from '../../automata.json';
 
 const COLORS = scaleOrdinal(schemeCategory10); 
-const CELL_SIZE = 10;
+const CELL_SIZE = 7;
 
 export class Automata extends Component {
   constructor(props) {
     super(props);
-    this.state = { model: new Model(300, 100, CONFIG.defaults.layers, Model.randomGrid(300, 100, CONFIG.defaults.layers.length)) }
+    this.state = { 
+      model: new Model(300, 100, CONFIG.defaults.layers, Model.randomGrid(300, 100, CONFIG.defaults.layers.length)), 
+    }
   }
 
   render() {
     return (
-      <svg className="base-layer">This is an automata</svg>
+      <div className="base-layer"></div>
     )
   }
 
-  drawAutomata() {
-    const svg = select('svg').html("");
+  draw() {
+    let context = this.state.context; 
+    if (!context) {
+      const base = select('.base-layer');
+      const view = base.append('canvas')
+        .attr('width', 500)
+        .attr('height', 500);
 
-    const row = svg.selectAll('.row')
-      .data(this.state.model._grid)
-      .enter()
-      .append("g")
-      .attr("class", "row");
-
-    row.selectAll('.square')
-      .data(d => d)
-      .enter()
-      .append('rect')
-      .attr('fill', (rect) => {
-        return rect.value === 0 ? '#fff' : COLORS(rect.value)
-      })
-      .attr('x', (rect) => {
-        return rect.col * CELL_SIZE;
-      })
-      .attr('y', (rect) => {
-        return rect.row * CELL_SIZE;
-      })
-      .attr('width', (rect) => {
-        return CELL_SIZE;
-      })
-      .attr('height', (rect) => {
-        return CELL_SIZE;
-      })
-      .style("stroke", "#EEE");
+      context = view.node().getContext('2d');
+      this.setState({ model: this.state.model, context: context });
+    }
+    this.state.model._grid.forEach((cells, row) => {
+      cells.forEach((cell, col) => {
+        context.beginPath();
+        context.rect(cell.col * CELL_SIZE, cell.row * CELL_SIZE,  CELL_SIZE, CELL_SIZE);
+        context.fillStyle = cell.value === 0 ? '#fff' : COLORS(cell.value)
+        context.fill();
+        context.closePath();
+      });
+    });
   }
 
   componentDidMount() {
-    this.drawAutomata();
+    this.draw();
     setInterval(() => {
       const nextState = this.state.model.evolve();
-      this.setState({ model: nextState });
-      this.drawAutomata();
-    }, 1000);
+      this.setState({ model: nextState, canvas: this.state.canvas });
+      this.draw();
+    }, 50);
   }
 }
