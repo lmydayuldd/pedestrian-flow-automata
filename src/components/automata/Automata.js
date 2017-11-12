@@ -7,10 +7,10 @@ import 'd3-path';
 import { scaleLinear } from 'd3-scale';
 import { interpolateYlGnBu } from 'd3-scale-chromatic';
 import './Automata.css';
-import { Model } from './Evolver.js';
+import { Model } from './Model';
 import CONFIG from '../../automata.json';
 
-const COLORS = interpolateYlGnBu;
+const colors = interpolateYlGnBu;
 const scale = scaleLinear()
                 .domain([0, 5])
                 .range([0, 1]);
@@ -18,9 +18,8 @@ const scale = scaleLinear()
 export class Automata extends Component {
   constructor(props) {
     super(props);
-    this.state = { 
-      model: new Model(this.props.width, this.props.height, CONFIG.defaults.layers, Model.randomGrid(this.props.width, this.props.height, CONFIG.defaults.layers.length)), 
-    }
+    const model = new Model(this.props.width, this.props.height, CONFIG.defaults.layers, Model.randomGrid(this.props.width, this.props.height, CONFIG.defaults.layers.length)); 
+    this.state = { model: model };
   }
 
   render() {
@@ -47,7 +46,15 @@ export class Automata extends Component {
       cells.forEach((cell, col) => {
         context.beginPath();
         context.arc(cellSize * (cell.col + 0.5), cellSize * (cell.row + 0.5), cellSize / 2, 0, 2 * Math.PI);
-        context.fillStyle = cell.value === 0 ? '#fff' : COLORS(scale(cell.value))
+        let color;
+        if (cell.value > this.state.model.layerCount) {
+          color = '#0ff';
+        } else if (cell.value === 0) {
+          color = '#fff'
+        } else { 
+          color = colors(scale(cell.value));
+        }
+        context.fillStyle = color;
         context.strokeStyle = '#eee';
         context.lineWidth = 1;
         context.fill();

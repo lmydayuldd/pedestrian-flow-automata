@@ -1,58 +1,7 @@
-const VECINITY = { 
-  N: { dx: 0, dy: -1 }, 
-  NE: { dx: 1, dy: -1 }, 
-  NW: { dx: -1, dy: -1},
-  S: { dx: 0, dy: 1 }, 
-  SE: { dx: 1, dy: 1 }, 
-  SW: { dx: -1, dy: 1 }, 
-  E: { dx: 1, dy: 0 },
-  W: { dx: -1, dy: 0 }
-};
+import Cell from './Cell';
 
-export class Cell {
-  constructor(row, col, value) {
-    this._col = col;
-    this._row = row;
-    this._value = value;
-    this._neighbours = this._buildNeighbours(VECINITY);   
-  }
-
-  get row() {
-    return this._row;
-  }
-
-  get col() {
-    return this._col;
-  }
-
-  _buildNeighbours(cardinalPoints) {
-    return Object.keys(cardinalPoints)
-      .map((key) => {
-        const col = this._col + cardinalPoints[key].dx;
-        const row = this._row + cardinalPoints[key].dy;
-        
-        const neighbour = {
-          col: col,
-          row: row,
-          key: key
-        };
-        return neighbour;
-      })
-      .reduce((result, value) => {
-        result[value.key] = { row: value.row, col: value.col };
-        return result;
-      }, {});
-  }
-
-  get neighbours() {
-    return this._neighbours;
-  }
-
-  get value() {
-    return this._value;
-  }
-}
-
+const EXIT = 1000;
+const ENTRANCE = 1001;
 /**
  * This class keeps the state of each iteration.
  * The constructor parameters indicate what's the size 
@@ -68,6 +17,10 @@ export class Model {
     } else {
       this._grid = state;
     }
+  }
+
+  get layerCount() {
+    return this._layers.length;
   }
 
   static emptyGrid(width, height) {
@@ -88,6 +41,12 @@ export class Model {
         state[row][col] = new Cell(row, col, Math.floor(Math.random() * layers));
       }
     }
+    for (let i = 0; i < 6; i++) {
+      state[(height / 2) + i][width - 1] = new Cell((height / 2) + i, width - 1, EXIT);
+    }
+    for (let i = 0; i < 6; i++) {
+      state[(height / 2) + i][0] = new Cell((height / 2) + i, 0, ENTRANCE);
+    }
     return state;
   }
 
@@ -96,10 +55,13 @@ export class Model {
     for (let row = 0; row < this._height; row++) {
       for (let col = 0; col < this._width; col++) {
         const cell = state[row][col];
-        if (cell.value === 0 || cell.value > this._layers.length) {
+        if (cell.value === 0 || cell.value === EXIT) {
           continue;
         }
-        const layer = this._layers[cell.value];
+        let layer = this._layers[cell.value];
+        if (!layer) {
+          layer = this._layers[0];
+        }
         const proof = Math.random();
         let moveDirection;
         for (let direction in layer) {
@@ -112,12 +74,26 @@ export class Model {
         const rowNew = Math.max(0, Math.min(move.row, this._height - 1));
         const colNew = Math.max(0, Math.min(move.col, this._width - 1));
         const targetCell = state[rowNew][colNew];
-        if (targetCell.value === 0) {
+
+        if (cell.value === ENTRANCE) {
+          if (targetCell.value === 0 && proof > 1) {
+            state[targetCell.row][targetCell.col] = new Cell(targetCell.row, targetCell.col, Math.floor(Math.random() * this.layerCount));
+          }
+          continue;
+        }
+
+        if (targetCell.value === 0){
+          if (cell.row === targetCell.row && cell.col === targetCell.col) {
+            continue;
+          }
           state[targetCell.row][targetCell.col] = new Cell(targetCell.row, targetCell.col, cell.value);
+          state[cell.row][cell.col] = new Cell(cell.row, cell.col, targetCell.value);
+        } else if (targetCell.value === EXIT ) {
+          state[targetCell.row][targetCell.col] = new Cell(targetCell.row, targetCell.col, targetCell.value);
           state[cell.row][cell.col] = new Cell(cell.row, cell.col, 0);
         } else {
-          state[cell.row][cell.col] = cell;
-          state[targetCell.row][targetCell.col] = targetCell;
+          state[cell.row][cell.col] = new Cell(cell.row, cell.col, cell.value);
+          state[targetCell.row][targetCell.col] = new Cell(targetCell.row, targetCell.col, targetCell.value);
         }
       }
     }

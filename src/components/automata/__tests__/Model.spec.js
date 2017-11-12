@@ -1,4 +1,5 @@
-import { Cell, Model } from '../Evolver.js';
+import { Model } from '../Model';
+import Cell from '../Cell';
 import DEFAULTS from '../../../automata.json';
 
 it('should build the neighbours array with given value', () => {
