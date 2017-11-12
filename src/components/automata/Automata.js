@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import { Button, Sidebar } from '../navigation';
 
+import * as d3 from 'd3';
+import { event as currentEvent } from 'd3';
 import { select } from 'd3-selection'
 import 'd3-selection-multi'
 import 'd3-shape';
@@ -44,7 +46,7 @@ export class Automata extends Component {
       <div>
         <Sidebar>
           <Button name={ name } click={ callback } text={ text } />
-          <Button name='pencil-square-o' text='Edit' />
+          <Button name='pencil-square-o' click={ () => { this.edit() }} text='Edit' />
           <Button name='question' text='About' />
           <Button name='book' text='References' />
         </Sidebar>
@@ -59,6 +61,24 @@ export class Automata extends Component {
 
   resume () {
     this.setState(Object.assign(this.state, { paused: false }));
+  }
+
+  edit () {
+    this.pause();
+    this.setState(Object.assign(this.state, { editing: true }));
+    const cellSize = this.props.cellSize;
+    const view = select('canvas');
+    const context = view.node().getContext('2d');
+    view.on('mousemove', () => {
+      this.draw();
+      const col = Math.floor(currentEvent.pageX / cellSize);
+      const row = Math.floor(currentEvent.pageY / cellSize);
+      context.beginPath();
+      context.arc(cellSize * (col + 0.5), cellSize * (row + 0.5), cellSize / 2, 0, 2 * Math.PI);
+      context.fillStyle = "#fff";
+      context.fill();
+      context.closePath();
+    }, false);
   }
 
   draw () {
