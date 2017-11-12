@@ -13,6 +13,6 @@
     padding-top: 1.2rem;
 }
 
-.button .fa { 
-    color: #E4F1AA;
+.button:hover {
+    color: #7CBBAA;
 }

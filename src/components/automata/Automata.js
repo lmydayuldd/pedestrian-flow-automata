@@ -25,11 +25,25 @@ export class Automata extends Component {
     this.state = { model: model };
   }
 
-  render() {
+  render () {
+    let name, callback, text;
+    if (this.state.paused) {
+      name = 'play-circle-o';
+      callback = () => {
+        this.resume();
+      };
+      text = 'Resume'
+    } else {
+      name = 'pause-circle-o';
+      callback = () => {
+        this.pause();
+      };
+      text = 'Pause'
+    }
     return (
       <div>
         <Sidebar>
-          <Button name='pause-circle-o' click={ this.pause } text='Pause' />
+          <Button name={ name } click={ callback } text={ text } />
           <Button name='pencil-square-o' text='Edit' />
           <Button name='question' text='About' />
           <Button name='book' text='References' />
@@ -40,12 +54,14 @@ export class Automata extends Component {
   }
 
   pause () {
-    console.log('sdadasdasdasdasdasd');
-    console.log(this);
     this.setState(Object.assign(this.state, { paused: true }));
   }
 
-  draw() {
+  resume () {
+    this.setState(Object.assign(this.state, { paused: false }));
+  }
+
+  draw () {
     const cellSize = this.props.cellSize;
     let context = this.state.context; 
     if (!context) {
@@ -83,7 +99,7 @@ export class Automata extends Component {
     });
   }
 
-  componentDidMount() {
+  componentDidMount () {
     this.draw();
     setInterval(() => {
       if (this.state.paused) { 
