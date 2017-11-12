@@ -1,0 +1,18 @@
+.sidebar {
+    width: 6rem;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: #141219;
+}
+
+.button {
+    text-align: center;
+    color: #E4F1AA;
+    padding-top: 1.2rem;
+}
+
+.button .fa { 
+    color: #E4F1AA;
+}

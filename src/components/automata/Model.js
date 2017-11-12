@@ -41,11 +41,11 @@ export class Model {
         state[row][col] = new Cell(row, col, Math.floor(Math.random() * layers));
       }
     }
-    for (let i = 0; i < 6; i++) {
-      state[(height / 2) + i][width - 1] = new Cell((height / 2) + i, width - 1, EXIT);
+    for (let i = 0; i < 3; i++) {
+      state[i][width - 1] = new Cell(i, width - 1, EXIT);
     }
     for (let i = 0; i < 6; i++) {
-      state[(height / 2) + i][0] = new Cell((height / 2) + i, 0, ENTRANCE);
+      state[i][0] = new Cell(i, 0, ENTRANCE);
     }
     return state;
   }
