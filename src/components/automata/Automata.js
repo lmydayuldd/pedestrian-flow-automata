@@ -12,9 +12,9 @@ import { scaleLinear } from 'd3-scale';
 import { interpolateSpectral } from 'd3-scale-chromatic';
 
 import './Automata.css';
+import * as defaultConfig from '../../automata.json'
 
 import { Model } from './Model';
-import CONFIG from '../../automata.json';
 
 const colors = interpolateSpectral;
 const scale = scaleLinear()
@@ -24,7 +24,9 @@ const scale = scaleLinear()
 export class Automata extends Component {
   constructor(props) {
     super(props);
-    const model = new Model(this.props.width, this.props.height, CONFIG.defaults.layers, Model.randomGrid(this.props.width, this.props.height, CONFIG.defaults.layers.length)); 
+    const config = defaultConfig.defaults;
+    console.log(config);
+    const model = new Model(this.props.width, this.props.height, config.layers, Model.randomGrid(this.props.width, this.props.height, config.layers.length)); 
     this.state = { model: model };
   }
 
@@ -41,12 +43,12 @@ export class Automata extends Component {
       <div>
         <Sidebar>
           <Button name={ name } click={ () => { this.pauseResume(); } } text={ text } />
-          <Button name='pencil-square-o' click={ () => { this.edit() }} text='Edit' />
+          <Button name='pencil-square-o' click={ () => { this.edit(); }} text='Edit' />
           <Button name='question' text='About' />
           <Button name='book' text='References' />
         </Sidebar>
         <div className="base-layer">
-          { this.state.editing ? <EditDialog size={ this.props.cellSize } x={ this.state.x } y={ this.state.y } /> : null }
+          { this.state.editing ? <EditDialog parent={ this } model={ this.state.model } size={ this.props.cellSize } col={ this.state.col } row={ this.state.row } posX={ this.state.posX } posY={ this.state.posY } /> : null }
         </div>
       </div>
     );
@@ -57,7 +59,8 @@ export class Automata extends Component {
       this.setState(Object.assign(this.state, { paused: state }));
       return;
     }
-    this.setState(Object.assign(this.state, { paused: !this.state.paused }));
+    this.setState(Object.assign(this.state, { editing: false, paused: !this.state.paused }));
+    select('canvas').on('mousemove', null);
   }
 
   edit () {
@@ -77,16 +80,21 @@ export class Automata extends Component {
     });
     view.on('click', (e) => {
       view.on('mousemove', null);
-      this.showEditDialog(currentEvent.pageX, currentEvent.pageY);
+      this._showEditDialog(currentEvent.pageX, currentEvent.pageY);
+      view.on('click', null);
     });
   }
 
-  showEditDialog (pageX, pageY) {
+  hideEditDialog() {
+    this.setState(Object.assign(this.state, { editing: false, col: null, row: null, posX: null, posY: null }));
+    this.edit();
+  }
+
+  _showEditDialog (pageX, pageY) {
     const cellSize = this.props.cellSize;
     const col = Math.floor(pageX / cellSize);
     const row = Math.floor(pageY / cellSize);
-    this.setState(Object.assign(this.state, { editing: true, x: cellSize * (col + 0.5), y: cellSize * (row + 0.5) }));
-    console.log(this.state);
+    this.setState(Object.assign(this.state, { editing: true, col: col, row: row, posX: cellSize * (col + 0.5), posY: cellSize * (row + 0.5) }));
   }
 
   draw () {
@@ -113,7 +121,7 @@ export class Automata extends Component {
         } else if (cell.value === 0) {
           color = '#141219'
         } else if (cell.value < 0) {
-          color = '#fff'
+          color = '#29272D'
         } else { 
           color = colors(scale(cell.value));
         }

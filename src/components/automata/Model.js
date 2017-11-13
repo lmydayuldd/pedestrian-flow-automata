@@ -2,6 +2,7 @@ import Cell from './Cell';
 
 const EXIT = 1000;
 const ENTRANCE = 1001;
+const OBSTACLE = -1;
 /**
  * This class keeps the state of each iteration.
  * The constructor parameters indicate what's the size 
@@ -36,11 +37,11 @@ export class Model {
 
   static randomGrid(width, height, layers) {
     let state = Model.emptyGrid(width, height);
-    for (let row = 0; row < height; row++) {
-      for (let col = 0; col < width; col++) {
-        state[row][col] = new Cell(row, col, Math.floor(Math.random() * layers));
-      }
-    }
+    //for (let row = 0; row < height; row++) {
+      //for (let col = 0; col < width; col++) {
+        //state[row][col] = new Cell(row, col, Math.floor(Math.random() * layers));
+      //}
+    //}
     for (let i = 0; i < 3; i++) {
       state[i][width - 1] = new Cell(i, width - 1, EXIT);
     }
@@ -55,7 +56,7 @@ export class Model {
     for (let row = 0; row < this._height; row++) {
       for (let col = 0; col < this._width; col++) {
         const cell = state[row][col];
-        if (cell.value === 0 || cell.value === EXIT) {
+        if (cell.value === 0 || cell.value === EXIT || cell.value === OBSTACLE) {
           continue;
         }
         let layer = this._layers[cell.value];
@@ -76,7 +77,7 @@ export class Model {
         const targetCell = state[rowNew][colNew];
 
         if (cell.value === ENTRANCE) {
-          if (targetCell.value === 0 && proof > 1) {
+          if (targetCell.value === 0 && proof > 0.3) {
             state[targetCell.row][targetCell.col] = new Cell(targetCell.row, targetCell.col, Math.floor(Math.random() * this.layerCount));
           }
           continue;
@@ -91,6 +92,9 @@ export class Model {
         } else if (targetCell.value === EXIT ) {
           state[targetCell.row][targetCell.col] = new Cell(targetCell.row, targetCell.col, targetCell.value);
           state[cell.row][cell.col] = new Cell(cell.row, cell.col, 0);
+        } else if (targetCell.value === OBSTACLE) {
+          state[targetCell.row][targetCell.col] = new Cell(targetCell.row, targetCell.col, targetCell.value);
+          state[cell.row][cell.col] = new Cell(cell.row, cell.col, cell.value);
         } else {
           state[cell.row][cell.col] = new Cell(cell.row, cell.col, cell.value);
           state[targetCell.row][targetCell.col] = new Cell(targetCell.row, targetCell.col, targetCell.value);
@@ -98,5 +102,26 @@ export class Model {
       }
     }
     return new Model(this._width, this._height, this._layers, state);
+  }
+
+  addCell (row, col) { 
+    const cellValue = Math.floor(Math.random() * this.layerCount);
+    this._grid[row][col] = new Cell(row, col, Math.floor(cellValue));
+  }
+
+  addDoor (row, col) {
+    this._grid[row][col] = new Cell(row, col, ENTRANCE);
+  }
+
+  addExit (row, col) { 
+    this._grid[row][col] = new Cell(row, col, EXIT);
+  }
+
+  addObstacle (row, col) {
+    this._grid[row][col] = new Cell(row, col, OBSTACLE);
+  }
+
+  removeCell (row, col) { 
+    this._grid[row][col] = new Cell(row, col, 0);
   }
 }
