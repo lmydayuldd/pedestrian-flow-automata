@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { EditDialog } from './EditDialog';
 import { Button, Sidebar } from '../navigation';
 
 import * as d3 from 'd3';
@@ -28,44 +29,39 @@ export class Automata extends Component {
   }
 
   render () {
-    let name, callback, text;
+    let name, text;
     if (this.state.paused) {
       name = 'play-circle-o';
-      callback = () => {
-        this.resume();
-      };
-      text = 'Resume'
+      text = 'Resume';
     } else {
       name = 'pause-circle-o';
-      callback = () => {
-        this.pause();
-      };
-      text = 'Pause'
+      text = 'Pause';
     }
     return (
       <div>
         <Sidebar>
-          <Button name={ name } click={ callback } text={ text } />
+          <Button name={ name } click={ () => { this.pauseResume(); } } text={ text } />
           <Button name='pencil-square-o' click={ () => { this.edit() }} text='Edit' />
           <Button name='question' text='About' />
           <Button name='book' text='References' />
         </Sidebar>
-        <div className="base-layer"></div>
+        <div className="base-layer">
+          { this.state.editing ? <EditDialog size={ this.props.cellSize } x={ this.state.x } y={ this.state.y } /> : null }
+        </div>
       </div>
     );
   }
 
-  pause () {
-    this.setState(Object.assign(this.state, { paused: true }));
-  }
-
-  resume () {
-    this.setState(Object.assign(this.state, { paused: false }));
+  pauseResume (state) {
+    if (typeof state !== 'undefined') {
+      this.setState(Object.assign(this.state, { paused: state }));
+      return;
+    }
+    this.setState(Object.assign(this.state, { paused: !this.state.paused }));
   }
 
   edit () {
-    this.pause();
-    this.setState(Object.assign(this.state, { editing: true }));
+    this.pauseResume(true);
     const cellSize = this.props.cellSize;
     const view = select('canvas');
     const context = view.node().getContext('2d');
@@ -75,10 +71,22 @@ export class Automata extends Component {
       const row = Math.floor(currentEvent.pageY / cellSize);
       context.beginPath();
       context.arc(cellSize * (col + 0.5), cellSize * (row + 0.5), cellSize / 2, 0, 2 * Math.PI);
-      context.fillStyle = "#fff";
+      context.fillStyle = '#fff';
       context.fill();
       context.closePath();
-    }, false);
+    });
+    view.on('click', (e) => {
+      view.on('mousemove', null);
+      this.showEditDialog(currentEvent.pageX, currentEvent.pageY);
+    });
+  }
+
+  showEditDialog (pageX, pageY) {
+    const cellSize = this.props.cellSize;
+    const col = Math.floor(pageX / cellSize);
+    const row = Math.floor(pageY / cellSize);
+    this.setState(Object.assign(this.state, { editing: true, x: cellSize * (col + 0.5), y: cellSize * (row + 0.5) }));
+    console.log(this.state);
   }
 
   draw () {
