@@ -16,7 +16,6 @@ export class EditDialog extends Component {
         left: posX + 'px',
         borderRadius: this.props.size / 2 + 'px',
       };
-      console.log(this.props.model);
       return (
         <div className='dialog' style={style}>
           <Button name='user-plus' click={ () => {
@@ -26,11 +25,11 @@ export class EditDialog extends Component {
           <Button name='sign-in' click={ () => {
             this.props.model.addDoor(row, col);
             this.props.parent.hideEditDialog();
-          }} text='Add Exit' />
+          }} text='Add Entrance' />
           <Button name='sign-out' click={ () => {
             this.props.model.addExit(row, col);
             this.props.parent.hideEditDialog();
-          }} text='Add Entrance' />
+          }} text='Add Exit' />
           <Button name='ban' click={ () => {
             this.props.model.addObstacle(row, col);
             this.props.parent.hideEditDialog();

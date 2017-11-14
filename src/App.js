@@ -5,7 +5,7 @@ import './App.css';
 
 class App extends Component {
   render() {
-    const cellSize = 14;
+    const cellSize = 20;
     const width = Math.round(window.innerWidth / cellSize);
     const height = Math.round(window.innerHeight / cellSize);
     return (

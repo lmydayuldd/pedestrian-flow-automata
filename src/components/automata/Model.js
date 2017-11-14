@@ -1,4 +1,13 @@
-import Cell from './Cell';
+const VECINITY = { 
+  N: { dx: 0, dy: -1 }, 
+  NE: { dx: 1, dy: -1 }, 
+  NW: { dx: -1, dy: -1},
+  S: { dx: 0, dy: 1 }, 
+  SE: { dx: 1, dy: 1 }, 
+  SW: { dx: -1, dy: 1 }, 
+  E: { dx: 1, dy: 0 },
+  W: { dx: -1, dy: 0 }
+};
 
 const EXIT = 1000;
 const ENTRANCE = 1001;
@@ -20,6 +29,10 @@ export class Model {
     }
   }
 
+  get layers () {
+    return this._layers;
+  }
+
   get layerCount() {
     return this._layers.length;
   }
@@ -29,7 +42,7 @@ export class Model {
     for (let row = 0; row < height; row++) {
       grid[row] = [];
       for (let col = 0; col < width; col++) {
-        grid[row][col] = new Cell(row, col, 0);
+        grid[row][col] = 0;
       }
     }
     return grid;
@@ -43,12 +56,22 @@ export class Model {
       //}
     //}
     for (let i = 0; i < 3; i++) {
-      state[i][width - 1] = new Cell(i, width - 1, EXIT);
+      state[i][width - 1] = EXIT;
     }
     for (let i = 0; i < 6; i++) {
-      state[i][0] = new Cell(i, 0, ENTRANCE);
+      state[i][0] = ENTRANCE;
     }
     return state;
+  }
+
+  value(row, col) { 
+    return this._grid[row][col];
+  }
+
+  _calculateMove(row, col, direction) {
+    const newRow = Math.max(row + VECINITY[direction].dy, 0);
+    const newCol = Math.max(col + VECINITY[direction].dx, 0);
+    return { row: newRow, col: newCol };
   }
 
   evolve () {
@@ -56,10 +79,10 @@ export class Model {
     for (let row = 0; row < this._height; row++) {
       for (let col = 0; col < this._width; col++) {
         const cell = state[row][col];
-        if (cell.value === 0 || cell.value === EXIT || cell.value === OBSTACLE) {
+        if (cell === 0 || cell === EXIT || cell === OBSTACLE) {
           continue;
         }
-        let layer = this._layers[cell.value];
+        let layer = this._layers[cell - 1];
         if (!layer) {
           layer = this._layers[0];
         }
@@ -67,37 +90,42 @@ export class Model {
         let moveDirection;
         for (let direction in layer) {
           if (layer[direction] > proof) {
+            moveDirection = direction;
             break;
           }
-          moveDirection = direction;
+        } 
+        if (!moveDirection) { 
+          continue;
         }
-        const move = cell.neighbours[moveDirection];
-        const rowNew = Math.max(0, Math.min(move.row, this._height - 1));
-        const colNew = Math.max(0, Math.min(move.col, this._width - 1));
+        const move = this._calculateMove(row, col, moveDirection);
+        const rowNew = Math.min(move.row, this._height - 1);
+        const colNew = Math.min(move.col, this._width - 1);
+        
+        if (row === rowNew && col === colNew) {
+          continue;
+        }
+        
         const targetCell = state[rowNew][colNew];
 
-        if (cell.value === ENTRANCE) {
-          if (targetCell.value === 0 && proof > 0.3) {
-            state[targetCell.row][targetCell.col] = new Cell(targetCell.row, targetCell.col, Math.floor(Math.random() * this.layerCount));
+        if (cell === ENTRANCE) {
+          if (targetCell === 0 && proof > 0.3) {
+            state[rowNew][colNew] = Math.floor(Math.random() * this.layerCount);
           }
           continue;
         }
 
-        if (targetCell.value === 0){
-          if (cell.row === targetCell.row && cell.col === targetCell.col) {
-            continue;
-          }
-          state[targetCell.row][targetCell.col] = new Cell(targetCell.row, targetCell.col, cell.value);
-          state[cell.row][cell.col] = new Cell(cell.row, cell.col, targetCell.value);
-        } else if (targetCell.value === EXIT ) {
-          state[targetCell.row][targetCell.col] = new Cell(targetCell.row, targetCell.col, targetCell.value);
-          state[cell.row][cell.col] = new Cell(cell.row, cell.col, 0);
-        } else if (targetCell.value === OBSTACLE) {
-          state[targetCell.row][targetCell.col] = new Cell(targetCell.row, targetCell.col, targetCell.value);
-          state[cell.row][cell.col] = new Cell(cell.row, cell.col, cell.value);
+        if (targetCell === 0) {          
+          state[rowNew][colNew] = cell;
+          state[row][col] = targetCell;
+        } else if (targetCell === EXIT ) {
+          state[rowNew][colNew] = targetCell;
+          state[row][col] = 0;
+        } else if (targetCell === OBSTACLE) {
+          state[rowNew][colNew] = targetCell;
+          state[row][col] = cell;
         } else {
-          state[cell.row][cell.col] = new Cell(cell.row, cell.col, cell.value);
-          state[targetCell.row][targetCell.col] = new Cell(targetCell.row, targetCell.col, targetCell.value);
+          state[row][col] = cell;
+          state[rowNew][colNew] = targetCell;
         }
       }
     }
@@ -106,22 +134,22 @@ export class Model {
 
   addCell (row, col) { 
     const cellValue = Math.floor(Math.random() * this.layerCount);
-    this._grid[row][col] = new Cell(row, col, Math.floor(cellValue));
+    this._grid[row][col] = cellValue;
   }
 
   addDoor (row, col) {
-    this._grid[row][col] = new Cell(row, col, ENTRANCE);
+    this._grid[row][col] = ENTRANCE;
   }
 
   addExit (row, col) { 
-    this._grid[row][col] = new Cell(row, col, EXIT);
+    this._grid[row][col] = EXIT;
   }
 
   addObstacle (row, col) {
-    this._grid[row][col] = new Cell(row, col, OBSTACLE);
+    this._grid[row][col] = OBSTACLE;
   }
 
   removeCell (row, col) { 
-    this._grid[row][col] = new Cell(row, col, 0);
+    this._grid[row][col] = 0;
   }
 }

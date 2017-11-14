@@ -12,21 +12,20 @@ import { scaleLinear } from 'd3-scale';
 import { interpolateSpectral } from 'd3-scale-chromatic';
 
 import './Automata.css';
-import * as defaultConfig from '../../automata.json'
+import * as data from '../../automata.json'
 
 import { Model } from './Model';
 
 const colors = interpolateSpectral;
-const scale = scaleLinear()
-                .domain([0, 5])
-                .range([0, 1]);
 
 export class Automata extends Component {
   constructor(props) {
     super(props);
-    const config = defaultConfig.defaults;
-    console.log(config);
-    const model = new Model(this.props.width, this.props.height, config.layers, Model.randomGrid(this.props.width, this.props.height, config.layers.length)); 
+    //let model = new Model(this.props.width, this.props.height, data.default._layers, Model.randomGrid(this.props.width, this.props.height, data.default._layers));
+    let model = Object.assign(new Model(), data.default);
+    if (this.props.params) {
+      model = Object.assign(new Model(), data[this.props.params.sim]); 
+    }
     this.state = { model: model };
   }
 
@@ -44,8 +43,16 @@ export class Automata extends Component {
         <Sidebar>
           <Button name={ name } click={ () => { this.pauseResume(); } } text={ text } />
           <Button name='pencil-square-o' click={ () => { this.edit(); }} text='Edit' />
+          <Button name='times' text='Clear' click={ () => {
+            this.setState(Object.assign(this.state, { model: new Model(this.props.width, this.props.height, this.state.model.layers, Model.emptyGrid(this.props.width, this.props.height)) }));
+            this.pauseResume(true);
+            this.draw();
+          }} />
           <Button name='question' text='About' />
           <Button name='book' text='References' />
+          <Button name='share' text='Output Data' click={ () => {
+            console.log(JSON.stringify(this.state.model));
+          }} />
         </Sidebar>
         <div className="base-layer">
           { this.state.editing ? <EditDialog parent={ this } model={ this.state.model } size={ this.props.cellSize } col={ this.state.col } row={ this.state.row } posX={ this.state.posX } posY={ this.state.posY } /> : null }
@@ -88,6 +95,7 @@ export class Automata extends Component {
   hideEditDialog() {
     this.setState(Object.assign(this.state, { editing: false, col: null, row: null, posX: null, posY: null }));
     this.edit();
+    this.draw();
   }
 
   _showEditDialog (pageX, pageY) {
@@ -98,6 +106,10 @@ export class Automata extends Component {
   }
 
   draw () {
+    const scale = scaleLinear()
+      .domain([1, this.state.model.layerCount + 1])
+      .range([0, 1]);
+
     const cellSize = this.props.cellSize;
     let context = this.state.context; 
     if (!context) {
@@ -111,19 +123,20 @@ export class Automata extends Component {
       context = view.node().getContext('2d');
       this.setState({ model: this.state.model, context: context });
     }
-    this.state.model._grid.forEach((cells, row) => {
-      cells.forEach((cell, col) => {
+    for (let row = 0; row < this.props.height; row++) {
+      for (let col = 0; col < this.props.width; col++) {
+        const value = this.state.model.value(row, col);
         context.beginPath();
-        context.arc(cellSize * (cell.col + 0.5), cellSize * (cell.row + 0.5), cellSize / 2, 0, 2 * Math.PI);
+        context.arc(cellSize * (col + 0.5), cellSize * (row + 0.5), cellSize / 2, 0, 2 * Math.PI);
         let color;
-        if (cell.value > this.state.model.layerCount) {
+        if (value > this.state.model.layerCount) {
           color = '#c00';
-        } else if (cell.value === 0) {
+        } else if (value === 0) {
           color = '#141219'
-        } else if (cell.value < 0) {
+        } else if (value < 0) {
           color = '#29272D'
         } else { 
-          color = colors(scale(cell.value));
+          color = colors(scale(value + 1));
         }
         context.fillStyle = color;
         context.strokeStyle = '#29272D';
@@ -131,8 +144,8 @@ export class Automata extends Component {
         context.fill();
         context.stroke();
         context.closePath();
-      });
-    });
+      }
+    }
   }
 
   componentDidMount () {
