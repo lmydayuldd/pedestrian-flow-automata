@@ -22,11 +22,18 @@ export class Automata extends Component {
   constructor(props) {
     super(props);
     //let model = new Model(this.props.width, this.props.height, data.default._layers, Model.randomGrid(this.props.width, this.props.height, data.default._layers));
+    const sim = this.getParameterByName('sim');
     let model = Object.assign(new Model(), data.default);
-    if (this.props.params) {
-      model = Object.assign(new Model(), data[this.props.params.sim]); 
+    if (sim) {
+      model = Object.assign(new Model(), data[sim]); 
     }
     this.state = { model: model };
+  }
+
+  // move me to a better location
+  getParameterByName(name) {
+    var match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+    return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
   }
 
   render () {
