@@ -1,1 +1,1 @@
-export { Button, Sidebar } from './Sidebar';
+export { Button, Sidebar, SideDialog } from './Sidebar';

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { EditDialog } from './EditDialog';
-import { Button, Sidebar } from '../navigation';
+import { Button, Sidebar, SideDialog } from '../navigation';
 
 import * as d3 from 'd3';
 import { event as currentEvent } from 'd3';
@@ -16,24 +16,19 @@ import * as data from '../../automata.json'
 
 import { Model } from './Model';
 
+import * as utils from '../utils';
+
 const colors = interpolateSpectral;
 
 export class Automata extends Component {
   constructor(props) {
     super(props);
-    //let model = new Model(this.props.width, this.props.height, data.default._layers, Model.randomGrid(this.props.width, this.props.height, data.default._layers));
-    const sim = this.getParameterByName('sim');
+    const sim = utils.parameterByName('sim');
     let model = Object.assign(new Model(), data.default);
     if (sim) {
       model = Object.assign(new Model(), data[sim]); 
     }
     this.state = { model: model };
-  }
-
-  // move me to a better location
-  getParameterByName(name) {
-    var match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
-    return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
   }
 
   render () {
@@ -55,11 +50,18 @@ export class Automata extends Component {
             this.pauseResume(true);
             this.draw();
           }} />
-          <Button name='question' text='About' />
-          <Button name='book' text='References' />
-          <Button name='share' text='Output Data' click={ () => {
-            console.log(JSON.stringify(this.state.model));
-          }} />
+          <Button name='question' text='About'>
+            <SideDialog title='Automata Based Crowd Simulation'>
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc at ultrices odio. Donec et turpis convallis, vehicula eros nec, fringilla erat. Cras tempus ex eu euismod rhoncus. Quisque a iaculis lorem, vestibulum ullamcorper mi. Donec finibus ipsum vitae diam venenatis hendrerit. Vestibulum a lacus tempor, placerat nunc sit amet, commodo dui. Nulla venenatis condimentum massa, ac maximus ligula tincidunt sed. Integer rhoncus viverra lorem a elementum. Curabitur enim eros, blandit at vehicula eu, rhoncus ac justo. Nullam dignissim felis non elementum efficitur. Vestibulum sodales ligula turpis, et sollicitudin justo gravida ut.
+
+Fusce pellentesque sed magna vitae posuere. Nunc nec lectus velit. Aliquam a fringilla mi. Duis id eros eget risus aliquam rutrum. Nunc odio tortor, gravida vitae augue non, efficitur auctor purus. Phasellus aliquet nisl vel ligula dignissim, id ultrices massa iaculis. Pellentesque congue mauris enim, vitae lobortis dui dignissim a. Quisque cursus odio eget urna viverra pretium. Cras bibendum felis eget purus suscipit tincidunt. Sed ullamcorper augue leo, vitae volutpat est sagittis ut.
+            </SideDialog>          
+          </Button>
+          <Button name='book' text='References'>
+            <SideDialog title='References'>
+              some other random content must go here
+            </SideDialog>
+          </Button>
         </Sidebar>
         <div className="base-layer">
           { this.state.editing ? <EditDialog parent={ this } model={ this.state.model } size={ this.props.cellSize } col={ this.state.col } row={ this.state.row } posX={ this.state.posX } posY={ this.state.posY } /> : null }
