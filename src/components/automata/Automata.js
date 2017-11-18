@@ -31,6 +31,7 @@ export class Automata extends Component {
     const model = Object.assign(new Model(), savedModel);
     const cellSize = Math.round(window.innerHeight / model.height); 
     this.state = { model: model, cellSize: cellSize };
+    this.pauseResume(true);
   }
 
   render () {
@@ -54,14 +55,28 @@ export class Automata extends Component {
           }} />
           <Button name='question' text='About'>
             <SideDialog title='Automata Based Crowd Simulation'>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc at ultrices odio. Donec et turpis convallis, vehicula eros nec, fringilla erat. Cras tempus ex eu euismod rhoncus. Quisque a iaculis lorem, vestibulum ullamcorper mi. Donec finibus ipsum vitae diam venenatis hendrerit. Vestibulum a lacus tempor, placerat nunc sit amet, commodo dui. Nulla venenatis condimentum massa, ac maximus ligula tincidunt sed. Integer rhoncus viverra lorem a elementum. Curabitur enim eros, blandit at vehicula eu, rhoncus ac justo. Nullam dignissim felis non elementum efficitur. Vestibulum sodales ligula turpis, et sollicitudin justo gravida ut.
-
-Fusce pellentesque sed magna vitae posuere. Nunc nec lectus velit. Aliquam a fringilla mi. Duis id eros eget risus aliquam rutrum. Nunc odio tortor, gravida vitae augue non, efficitur auctor purus. Phasellus aliquet nisl vel ligula dignissim, id ultrices massa iaculis. Pellentesque congue mauris enim, vitae lobortis dui dignissim a. Quisque cursus odio eget urna viverra pretium. Cras bibendum felis eget purus suscipit tincidunt. Sed ullamcorper augue leo, vitae volutpat est sagittis ut.
+              <p>
+                Human being itself is really smart, but when are enclosed on a crowded situations, its behavior might change, and some reason seems to be shaded by the 
+                surrounding crowd<sup>[1]</sup>. The complete group of people then will distribute following a chaotic pattern, where smaller groups of persons will move pursuing 
+                a specific objective. <br />
+                Given the described scenario, is possible to model the situation using a cellular automata, which will try to represent closely the behaviour of the crowd. 
+                The way to model this automata is using objective matrices. The group then, would be split into smaller groups represented by colors. Each group would have 
+                it's own moving pattern specified by a layer which is a probability matrix. Every iteration of the automata will evaluate each cell, and will determinate 
+                the objective matrix associated to the cell value, to calculate where the cell is going to be placed the next iteration.
+                The purpose of this simulation is to demonstrate how the crowd would move given some specific situations.    
+              </p>
+              <p>
+                Developed by: <a href="https://www.linkedin.com/in/yosel-del-valle/">Yosel Del Valle</a>
+                <br />Directed by: <a href="https://www.linkedin.com/in/carlos-jaime-franco-45aa0b45/">Carlos Jaime Franco</a>   
+              </p>
             </SideDialog>          
           </Button>
           <Button name='book' text='References'>
             <SideDialog title='References'>
-              some other random content must go here
+              [1] D. Zhaoa, L. Yangb, J. Lib. Occupants behavior of going with the crowd based on cellular automata occupant evacuation model.< br/> 
+              [2] L. Lu, C. Chan, J. Wang, W. Wang. A study of pedestrian group behaviors in crowd evacuation based on an extended floor field cellular automaton model <br />
+              [3] C. Feliciani, K. Nishinari. An improved Cellular Automata model to simulate the behavior of high density crowd and validation by experimental data <br />
+              [4] M. Khalid, U. Yusof, Dynamic crowd evacuation approach for the emergency route planning problem: Application to case studies <br />
             </SideDialog>
           </Button>
         </Sidebar>

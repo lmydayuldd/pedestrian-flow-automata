@@ -56,22 +56,6 @@ export class Model {
     return grid;
   }
 
-  static randomGrid(width, height, layers) {
-    let state = Model.emptyGrid(width, height);
-    //for (let row = 0; row < height; row++) {
-      //for (let col = 0; col < width; col++) {
-        //state[row][col] = new Cell(row, col, Math.floor(Math.random() * layers));
-      //}
-    //}
-    for (let i = 0; i < 3; i++) {
-      state[i][width - 1] = EXIT;
-    }
-    for (let i = 0; i < 6; i++) {
-      state[i][0] = ENTRANCE;
-    }
-    return state;
-  }
-
   value(row, col) { 
     return this._grid[row][col];
   }
@@ -79,7 +63,25 @@ export class Model {
   _calculateMove(row, col, direction) {
     const newRow = Math.max(row + VECINITY[direction].dy, 0);
     const newCol = Math.max(col + VECINITY[direction].dx, 0);
-    return { row: newRow, col: newCol };
+
+    return { row: Math.min(newRow, this._height - 1), 
+      col: Math.min(newCol, this._width - 1) };
+  }
+
+  _moveDirection (layer) {
+    const reviewedKeys = [];
+    while (reviewedKeys.length < Object.keys(layer).length) {
+      let direction = Object.keys(layer)[Math.floor(Math.random() * Object.keys(layer).length)];
+      if (reviewedKeys.indexOf(direction) >= 0) {
+        continue;
+      }
+      reviewedKeys.push(direction);
+      const proof = Math.random();
+      if (layer[direction] >= proof) {
+        return direction;
+      }
+    }
+    return null;
   }
 
   evolve () {
@@ -94,46 +96,36 @@ export class Model {
         if (!layer) {
           layer = this._layers[0];
         }
-        const proof = Math.random();
-        let moveDirection;
-        for (let direction in layer) {
-          if (layer[direction] > proof) {
-            moveDirection = direction;
-            break;
-          }
-        } 
+        const moveDirection = this._moveDirection(layer);         
         if (!moveDirection) { 
           continue;
         }
         const move = this._calculateMove(row, col, moveDirection);
-        const rowNew = Math.min(move.row, this._height - 1);
-        const colNew = Math.min(move.col, this._width - 1);
-        
-        if (row === rowNew && col === colNew) {
+        if (row === move.row && col === move.col) {
           continue;
         }
         
-        const targetCell = state[rowNew][colNew];
-
+        const targetCell = state[move.row][move.col];
+        const proof = Math.random();
         if (cell === ENTRANCE) {
           if (targetCell === 0 && proof > 0.3) {
-            state[rowNew][colNew] = Math.floor(Math.random() * this.layerCount);
+            state[move.row][move.col] = Math.floor(Math.random() * this.layerCount);
           }
           continue;
         }
 
         if (targetCell === 0) {          
-          state[rowNew][colNew] = cell;
+          state[move.row][move.col] = cell;
           state[row][col] = targetCell;
         } else if (targetCell === EXIT ) {
-          state[rowNew][colNew] = targetCell;
+          state[move.row][move.col] = targetCell;
           state[row][col] = 0;
         } else if (targetCell === OBSTACLE) {
-          state[rowNew][colNew] = targetCell;
+          state[move.row][move.col] = targetCell;
           state[row][col] = cell;
         } else {
           state[row][col] = cell;
-          state[rowNew][colNew] = targetCell;
+          state[move.row][move.col] = targetCell;
         }
       }
     }
