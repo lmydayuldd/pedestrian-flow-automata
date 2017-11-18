@@ -5,12 +5,9 @@ import './App.css';
 
 class App extends Component {
   render() {
-    const cellSize = 20;
-    const width = Math.round(window.innerWidth / cellSize);
-    const height = Math.round(window.innerHeight / cellSize);
     return (
       <div className="App">
-        <Automata width={ width } height={ height } cellSize={ cellSize } />
+        <Automata />
       </div>
     );
   }

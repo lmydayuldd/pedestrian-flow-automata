@@ -29,6 +29,14 @@ export class Model {
     }
   }
 
+  get width () {
+    return this._width;
+  }
+
+  get height () {
+    return this._height;
+  }
+
   get layers () {
     return this._layers;
   }

@@ -12,7 +12,7 @@ import { scaleLinear } from 'd3-scale';
 import { interpolateSpectral } from 'd3-scale-chromatic';
 
 import './Automata.css';
-import * as data from '../../automata.json'
+import * as data from './automata.json'
 
 import { Model } from './Model';
 
@@ -24,11 +24,13 @@ export class Automata extends Component {
   constructor(props) {
     super(props);
     const sim = utils.parameterByName('sim');
-    let model = Object.assign(new Model(), data.default);
+    let savedModel = data.default;
     if (sim) {
-      model = Object.assign(new Model(), data[sim]); 
+      savedModel = data[sim];
     }
-    this.state = { model: model };
+    const model = Object.assign(new Model(), savedModel);
+    const cellSize = Math.round(window.innerHeight / model.height); 
+    this.state = { model: model, cellSize: cellSize };
   }
 
   render () {
@@ -46,7 +48,7 @@ export class Automata extends Component {
           <Button name={ name } click={ () => { this.pauseResume(); } } text={ text } />
           <Button name='pencil-square-o' click={ () => { this.edit(); }} text='Edit' />
           <Button name='times' text='Clear' click={ () => {
-            this.setState(Object.assign(this.state, { model: new Model(this.props.width, this.props.height, this.state.model.layers, Model.emptyGrid(this.props.width, this.props.height)) }));
+            this.setState(Object.assign(this.state, { model: new Model(this.state.model.width, this.state.model.height, this.state.model.layers, Model.emptyGrid(this.state.model.width, this.state.model.height)) }));
             this.pauseResume(true);
             this.draw();
           }} />
@@ -64,7 +66,7 @@ Fusce pellentesque sed magna vitae posuere. Nunc nec lectus velit. Aliquam a fri
           </Button>
         </Sidebar>
         <div className="base-layer">
-          { this.state.editing ? <EditDialog parent={ this } model={ this.state.model } size={ this.props.cellSize } col={ this.state.col } row={ this.state.row } posX={ this.state.posX } posY={ this.state.posY } /> : null }
+          { this.state.editing ? <EditDialog parent={ this } model={ this.state.model } size={ this.state.cellSize } col={ this.state.col } row={ this.state.row } posX={ this.state.posX } posY={ this.state.posY } /> : null }
         </div>
       </div>
     );
@@ -81,7 +83,7 @@ Fusce pellentesque sed magna vitae posuere. Nunc nec lectus velit. Aliquam a fri
 
   edit () {
     this.pauseResume(true);
-    const cellSize = this.props.cellSize;
+    const cellSize = this.state.cellSize;
     const view = select('canvas');
     const context = view.node().getContext('2d');
     view.on('mousemove', () => {
@@ -108,7 +110,7 @@ Fusce pellentesque sed magna vitae posuere. Nunc nec lectus velit. Aliquam a fri
   }
 
   _showEditDialog (pageX, pageY) {
-    const cellSize = this.props.cellSize;
+    const cellSize = this.state.cellSize;
     const col = Math.floor(pageX / cellSize);
     const row = Math.floor(pageY / cellSize);
     this.setState(Object.assign(this.state, { editing: true, col: col, row: row, posX: cellSize * (col + 0.5), posY: cellSize * (row + 0.5) }));
@@ -119,21 +121,21 @@ Fusce pellentesque sed magna vitae posuere. Nunc nec lectus velit. Aliquam a fri
       .domain([1, this.state.model.layerCount + 1])
       .range([0, 1]);
 
-    const cellSize = this.props.cellSize;
+    const cellSize = this.state.cellSize;
     let context = this.state.context; 
     if (!context) {
       const base = select('.base-layer');
       const view = base.append('canvas')
-        .attr('width', this.props.width * this.props.cellSize)
-        .attr('height', this.props.height * this.props.cellSize);
+        .attr('width', this.state.model.width * this.state.cellSize)
+        .attr('height', this.state.model.height * this.state.cellSize);
       if (!view.node()) {
         return;
       }
       context = view.node().getContext('2d');
       this.setState({ model: this.state.model, context: context });
     }
-    for (let row = 0; row < this.props.height; row++) {
-      for (let col = 0; col < this.props.width; col++) {
+    for (let row = 0; row < this.state.model.height; row++) {
+      for (let col = 0; col < this.state.model.width; col++) {
         const value = this.state.model.value(row, col);
         context.beginPath();
         context.arc(cellSize * (col + 0.5), cellSize * (row + 0.5), cellSize / 2, 0, 2 * Math.PI);
