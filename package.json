@@ -11,6 +11,7 @@
     "d3-selection": "^1.1.0",
     "d3-selection-multi": "^1.0.1",
     "d3-shape": "^1.2.0",
+    "gh-pages": "^1.1.0",
     "react": "^15.6.1",
     "react-dom": "^15.6.1",
     "react-fontawesome": "^1.6.1",
@@ -20,6 +21,9 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
-    "eject": "react-scripts eject"
-  }
+    "eject": "react-scripts eject",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
+  },
+  "homepage": "https://yoseldvp.github.io/pedestrian-flow-automata"
 }

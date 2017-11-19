@@ -31,7 +31,6 @@ export class Automata extends Component {
     const model = Object.assign(new Model(), savedModel);
     const cellSize = Math.round(window.innerHeight / model.height); 
     this.state = { model: model, cellSize: cellSize };
-    this.pauseResume(true);
   }
 
   render () {
@@ -49,7 +48,9 @@ export class Automata extends Component {
           <Button name={ name } click={ () => { this.pauseResume(); } } text={ text } />
           <Button name='pencil-square-o' click={ () => { this.edit(); }} text='Edit' />
           <Button name='times' text='Clear' click={ () => {
-            this.setState(Object.assign(this.state, { model: new Model(this.state.model.width, this.state.model.height, this.state.model.layers, Model.emptyGrid(this.state.model.width, this.state.model.height)) }));
+            this.setState((prevState, props) => ({ 
+              model: new Model(prevState.model.width, prevState.model.height, prevState.model.layers, Model.emptyGrid(prevState.model.width, prevState.model.height)) 
+            }));
             this.pauseResume(true);
             this.draw();
           }} />
@@ -79,6 +80,9 @@ export class Automata extends Component {
               [4] M. Khalid, U. Yusof, Dynamic crowd evacuation approach for the emergency route planning problem: Application to case studies <br />
             </SideDialog>
           </Button>
+          <Button name='share' text='Output Data' click={ () => {
+            console.log(JSON.stringify(this.state.model));
+          }} />
         </Sidebar>
         <div className="base-layer">
           { this.state.editing ? <EditDialog parent={ this } model={ this.state.model } size={ this.state.cellSize } col={ this.state.col } row={ this.state.row } posX={ this.state.posX } posY={ this.state.posY } /> : null }
@@ -89,10 +93,14 @@ export class Automata extends Component {
 
   pauseResume (state) {
     if (typeof state !== 'undefined') {
-      this.setState(Object.assign(this.state, { paused: state }));
+      this.setState((prevState, props) => ({ 
+        paused: state 
+      }));
       return;
     }
-    this.setState(Object.assign(this.state, { editing: false, paused: !this.state.paused }));
+    this.setState((prevState, props) => ({ 
+      editing: false, paused: !prevState.paused 
+    }));
     select('canvas').on('mousemove', null);
   }
 
@@ -119,7 +127,9 @@ export class Automata extends Component {
   }
 
   hideEditDialog() {
-    this.setState(Object.assign(this.state, { editing: false, col: null, row: null, posX: null, posY: null }));
+    this.setState((prevState, props) => ({ 
+      editing: false, col: null, row: null, posX: null, posY: null 
+    }));
     this.edit();
     this.draw();
   }
@@ -128,7 +138,9 @@ export class Automata extends Component {
     const cellSize = this.state.cellSize;
     const col = Math.floor(pageX / cellSize);
     const row = Math.floor(pageY / cellSize);
-    this.setState(Object.assign(this.state, { editing: true, col: col, row: row, posX: cellSize * (col + 0.5), posY: cellSize * (row + 0.5) }));
+    this.setState((prevState, props) => ({
+      editing: true, col: col, row: row, posX: cellSize * (col + 0.5), posY: cellSize * (row + 0.5)
+    }));
   }
 
   draw () {
@@ -147,7 +159,9 @@ export class Automata extends Component {
         return;
       }
       context = view.node().getContext('2d');
-      this.setState({ model: this.state.model, context: context });
+      this.setState((prevState, props) => ({
+        model: prevState.model, context: context
+      }));
     }
     for (let row = 0; row < this.state.model.height; row++) {
       for (let col = 0; col < this.state.model.width; col++) {
@@ -175,6 +189,7 @@ export class Automata extends Component {
   }
 
   componentDidMount () {
+    this.pauseResume(true);
     this.draw();
     setInterval(() => {
       if (this.state.paused) { 
