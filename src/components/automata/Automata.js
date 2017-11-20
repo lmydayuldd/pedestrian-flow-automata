@@ -80,8 +80,14 @@ export class Automata extends Component {
               [4] M. Khalid, U. Yusof, Dynamic crowd evacuation approach for the emergency route planning problem: Application to case studies <br />
             </SideDialog>
           </Button>
-          <Button name='share' text='Output Data' click={ () => {
-            console.log(JSON.stringify(this.state.model));
+          <Button name='share' text='Initial Data' click={ () => {
+            window.location.href = '/';
+          }} />
+          <Button name='share' text='Lane Data' click={ () => {
+            window.location.href = '/?sim=lanes';
+          }} />
+          <Button name='share' text='Random Data' click={ () => {
+            window.location.href = '/?sim=random';
           }} />
         </Sidebar>
         <div className="base-layer">
