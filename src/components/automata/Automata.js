@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import Slider, { Range } from 'rc-slider';
 import { Button, Sidebar, SideDialog } from '../navigation';
 import Modal from '../common';
 
@@ -10,8 +11,9 @@ import 'd3-path';
 import { scaleLinear } from 'd3-scale';
 import { interpolateSpectral } from 'd3-scale-chromatic';
 
+import 'rc-slider/assets/index.css';
 import './Automata.css';
-import * as data from './automata.json'
+import * as data from './automata.json';
 
 import { Model } from './Model';
 
@@ -35,7 +37,7 @@ export class Automata extends Component {
     }
     const model = Object.assign(new Model(), savedModel);
     const cellSize = Math.round(window.innerHeight / model.height); 
-    this.state = { model: model, cellSize: cellSize };
+    this.state = { model: model, cellSize: cellSize, value: 60 };
   }
 
   render () {
@@ -144,6 +146,10 @@ export class Automata extends Component {
                   }} text='Stop Editing' />
                 }
               </div>
+              <div className='speedControl'>
+                Time Between Iterations (ms): <br /><br />
+                <Slider value={this.state.speed} min={60} max={1000} onChange={this.handleSpeedChange.bind(this)} />
+              </div>
             </SideDialog>
           </Button>
           <Button name='times' text='Clear' click={ () => {
@@ -193,6 +199,13 @@ export class Automata extends Component {
         </div>
       </div>
     );
+  }
+
+  handleSpeedChange (value) {
+    this.setState((prevState, props) => ({
+      speed: value
+    }));
+    this.createInterval();
   }
 
   handleChange (index, direction, element) {
@@ -310,7 +323,12 @@ export class Automata extends Component {
   componentDidMount () {
     this.pauseResume(true);
     this.draw();
-    setInterval(() => {
+    this.createInterval();    
+  }
+
+  createInterval () {
+    clearInterval(this.state.interval);
+    const interval = setInterval(() => {
       if (this.state.paused) { 
         return;
       }
@@ -319,6 +337,9 @@ export class Automata extends Component {
         model: nextState 
       }));
       this.draw();
-    }, 60);
+    }, this.state.speed);
+    this.setState((prevState, props) => ({
+      interval: interval
+    }));
   }
 }

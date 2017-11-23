@@ -13,6 +13,7 @@
     "d3-shape": "^1.2.0",
     "gh-pages": "^1.1.0",
     "rc-classnames": "^1.0.3",
+    "rc-slider": "^8.4.0",
     "react": "^15.6.1",
     "react-dom": "^15.6.1",
     "react-fontawesome": "^1.6.1",
