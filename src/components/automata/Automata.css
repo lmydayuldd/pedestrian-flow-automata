@@ -1,3 +1,18 @@
 .base-layer {
   background-color: #141219;
 }
+
+.matrices {
+  display: flex;
+}
+
+.matrices input {
+  padding: 0.4rem;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1rem;
+  width: 2.6rem;
+  text-align: center;
+  border: 1px solid #3E3D42;
+  background-color: #29272D;
+  color: #AAA;
+}

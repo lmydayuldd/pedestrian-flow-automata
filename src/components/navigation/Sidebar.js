@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import FontAwesome from 'react-fontawesome';
+import classNames from 'rc-classnames';
 
 import './Sidebar.css';
 
@@ -14,13 +15,17 @@ export class Button extends Component {
   }
     
   render() {
+    const classes = classNames({
+      'button': true,
+      'active': this.props.active
+    });
     return(
       <div onClick={ () => { 
         if  (typeof this.props.click === 'function') {
           this.props.click();
         } 
         this.toggleContent(); 
-        }} className='button'>
+        }} className={classes}>
         <FontAwesome
           name={ this.props.name }
           size='2x'

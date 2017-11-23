@@ -44,6 +44,10 @@ export class Model {
   get layerCount() {
     return this._layers.length;
   }
+  
+  get state () {
+    return this._grid;
+  }
 
   static emptyGrid(width, height) {
     let grid = [];
@@ -133,7 +137,7 @@ export class Model {
   }
 
   addCell (row, col) { 
-    const cellValue = Math.floor(Math.random() * this.layerCount);
+    const cellValue = Math.floor(Math.random() * this.layerCount) + 1;
     this._grid[row][col] = cellValue;
   }
 

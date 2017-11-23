@@ -1,8 +1,7 @@
 import React, { Component } from 'react';
-import { EditDialog } from './EditDialog';
 import { Button, Sidebar, SideDialog } from '../navigation';
+import Modal from '../common';
 
-import * as d3 from 'd3';
 import { event as currentEvent } from 'd3';
 import { select } from 'd3-selection'
 import 'd3-selection-multi'
@@ -17,6 +16,12 @@ import * as data from './automata.json'
 import { Model } from './Model';
 
 import * as utils from '../utils';
+
+const ADD_CELL = 1;
+const ADD_ENTRANCE = 2;
+const ADD_EXIT = 3;
+const ADD_OBSTACLE = 4;
+const REMOVE_CELL = 5;
 
 const colors = interpolateSpectral;
 
@@ -44,9 +49,103 @@ export class Automata extends Component {
     }
     return (
       <div>
+        <Modal title='Edit Probability Matrices' ref={(modal) => { this.modal = modal }}>
+          <p>Change the values of the probability matrix of each layer</p>
+          <div className='matrices'>
+            {this.state.model.layers.map((data, i) => {
+              return (
+                <table key={i}>
+                  <tbody>
+                    <tr>
+                      <td><input type='text' 
+                            value={this.state.model.layers[i].NW} 
+                            onChange={this.handleChange.bind(this, i, 'NW')} />
+                      </td>
+                      <td><input type='text' 
+                            value={this.state.model.layers[i].N} 
+                            onChange={this.handleChange.bind(this, i, 'N')} />
+                      </td>
+                      <td><input type='text' 
+                            value={this.state.model.layers[i].NE} 
+                            onChange={this.handleChange.bind(this, i, 'NE')} />
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><input type='text' 
+                            value={this.state.model.layers[i].W} 
+                            onChange={this.handleChange.bind(this, i, 'W')} />
+                      </td>
+                      <td></td>
+                      <td><input type='text' 
+                            value={this.state.model.layers[i].E} 
+                            onChange={this.handleChange.bind(this, i, 'E')} />
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><input type='text' 
+                            value={this.state.model.layers[i].SW} 
+                            onChange={this.handleChange.bind(this, i, 'SW')} />
+                      </td>
+                      <td><input type='text' 
+                            value={this.state.model.layers[i].S} 
+                            onChange={this.handleChange.bind(this, i, 'S')} />
+                      </td>
+                      <td><input type='text' 
+                            value={this.state.model.layers[i].SE} 
+                            onChange={this.handleChange.bind(this, i, 'SE')} />
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>);
+            })}
+          </div>
+        </Modal>
         <Sidebar>
           <Button name={ name } click={ () => { this.pauseResume(); } } text={ text } />
-          <Button name='pencil-square-o' click={ () => { this.edit(); }} text='Edit' />
+          <Button name='pencil-square-o' active={this.state.editAction} text='Edit'>
+            <SideDialog title='Edit Controls' >
+              <div className='controls'>
+                <Button name='user-plus' active={this.state.editAction === ADD_CELL} click={ () => {
+                  this.setState((prevState, props) => ({
+                    editAction: ADD_CELL
+                  }));
+                  this.edit();
+                }} text='Add Cell' />
+                <Button name='sign-in' active={this.state.editAction === ADD_ENTRANCE} click={ () => {
+                  this.setState((prevState, props) => ({
+                    editAction: ADD_ENTRANCE
+                  }));
+                  this.edit();
+                }} text='Add Entrance' />
+                <Button name='sign-out' active={this.state.editAction === ADD_EXIT} click={ () => {
+                  this.setState((prevState, props) => ({
+                    editAction: ADD_EXIT
+                  }));
+                  this.edit();
+                }} text='Add Exit' />
+                <Button name='ban' active={this.state.editAction === ADD_OBSTACLE} click={ () => {
+                  this.setState((prevState, props) => ({
+                    editAction: ADD_OBSTACLE
+                  }));
+                  this.edit();
+                }} text='Add Obstacle' />
+                <Button name='times' active={this.state.editAction === REMOVE_CELL} click={ () => {
+                  this.setState((prevState, props) => ({
+                    editAction: REMOVE_CELL
+                  }));
+                  this.edit();
+                }} text='Empty' />
+                <Button name='table' click={ () => {
+                  this.modal.show();
+                }} text='Layer Values' />
+                {this.state.editAction &&
+                  <Button name='hand-paper-o' click={ () => {
+                    this.stopEditing();
+                  }} text='Stop Editing' />
+                }
+              </div>
+            </SideDialog>
+          </Button>
           <Button name='times' text='Clear' click={ () => {
             this.setState((prevState, props) => ({ 
               model: new Model(prevState.model.width, prevState.model.height, prevState.model.layers, Model.emptyGrid(prevState.model.width, prevState.model.height)) 
@@ -91,13 +190,28 @@ export class Automata extends Component {
           }} />
         </Sidebar>
         <div className="base-layer">
-          { this.state.editing ? <EditDialog parent={ this } model={ this.state.model } size={ this.state.cellSize } col={ this.state.col } row={ this.state.row } posX={ this.state.posX } posY={ this.state.posY } /> : null }
         </div>
       </div>
     );
   }
 
+  handleChange (index, direction, element) {
+    const newLayers = Object.assign(this.state.model.layers)
+    newLayers[index][direction] = element.target.value;
+    this.setState((prevState, props) => {
+      const newModel = new Model(prevState.model.width, prevState.model.height, newLayers, prevState.model.state);
+      return { model: newModel };
+    });
+  }
+
+  stopEditing () {
+    this.setState((prevState, props) => ({
+      editAction: undefined 
+    }));
+  }
+
   pauseResume (state) {
+    this.stopEditing();
     if (typeof state !== 'undefined') {
       this.setState((prevState, props) => ({ 
         paused: state 
@@ -126,27 +240,26 @@ export class Automata extends Component {
       context.closePath();
     });
     view.on('click', (e) => {
-      view.on('mousemove', null);
-      this._showEditDialog(currentEvent.pageX, currentEvent.pageY);
-      view.on('click', null);
+      const col = Math.floor(currentEvent.pageX / cellSize);
+      const row = Math.floor(currentEvent.pageY / cellSize);
+      switch (this.state.editAction) {
+        case ADD_CELL:
+          this.state.model.addCell(row, col);
+          break;
+        case ADD_ENTRANCE:
+          this.state.model.addDoor(row, col);
+          break;
+        case ADD_EXIT:
+          this.state.model.addExit(row, col);
+          break;
+        case ADD_OBSTACLE:
+          this.state.model.addObstacle(row, col);
+          break;
+        case REMOVE_CELL:
+          this.state.model.removeCell(row, col);
+          break;
+      }
     });
-  }
-
-  hideEditDialog() {
-    this.setState((prevState, props) => ({ 
-      editing: false, col: null, row: null, posX: null, posY: null 
-    }));
-    this.edit();
-    this.draw();
-  }
-
-  _showEditDialog (pageX, pageY) {
-    const cellSize = this.state.cellSize;
-    const col = Math.floor(pageX / cellSize);
-    const row = Math.floor(pageY / cellSize);
-    this.setState((prevState, props) => ({
-      editing: true, col: col, row: row, posX: cellSize * (col + 0.5), posY: cellSize * (row + 0.5)
-    }));
   }
 
   draw () {
@@ -202,7 +315,9 @@ export class Automata extends Component {
         return;
       }
       const nextState = this.state.model.evolve();
-      this.setState({ model: nextState, canvas: this.state.canvas });
+      this.setState((prevState, props) => ({
+        model: nextState 
+      }));
       this.draw();
     }, 60);
   }
